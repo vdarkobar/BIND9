@@ -1,0 +1,26 @@
+logging {
+    channel query_log {
+        file "/var/log/named/queries.log" versions 3 size 5m;
+        severity info;
+        print-severity yes;
+        print-time yes;
+    };
+
+    channel client_log {
+        file "/var/log/named/client.log" versions 3 size 5m;
+        severity info;
+        print-severity yes;
+        print-time yes;
+    };
+
+    channel simple_log {
+        file "/var/log/named/simple.log" versions 3 size 5m;
+        severity info;
+        print-severity yes;
+        print-time yes;
+    };
+
+    category queries { query_log; };
+    category client { client_log; };
+    category default { simple_log; };
+};
