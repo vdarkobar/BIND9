@@ -1,0 +1,46 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+zone "home.lan" {
+	type master;
+	file "/etc/bind/zones/db.home.lan";
+	allow-transfer { 192.168.1.224; };
+};
+
+# Declaring reverse zones:
+
+zone "12.168.192.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.12.168.192";
+	allow-transfer { 192.168.1.224; };
+};
+
+zone "11.168.192.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.11.168.192";
+	allow-transfer { 192.168.1.224; };
+};
+	
+zone "10.168.192.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.10.168.192";
+	allow-transfer { 192.168.1.224; };
+};
+
+
+zone "1.168.192.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.1.168.192";
+	allow-transfer { 192.168.1.224; };
+};
+
+zone "10.10.10.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.10.10.10";
+	allow-transfer { 192.168.1.224; };
+};
