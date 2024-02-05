@@ -1,0 +1,28 @@
+acl trustedclients {
+	192.168.12.0/24;
+	192.168.11.0/24;
+	192.168.10.0/24;
+	192.168.1.0/24;
+	10.10.10.0/24;
+};
+
+options {
+	directory "/var/cache/bind";
+
+	allow-transfer { none; };
+	allow-query { localhost; trustedclients; };
+        listen-on port 53 { localhost; 192.168.1.223; };
+	recursion yes;
+	allow-recursion { trustedclients; };
+#	forwarders {
+#		9.9.9.9;
+#	};
+
+	//========================================================================
+	// If BIND logs error messages about the root key being expired,
+	// you will need to update your keys.  See https://www.isc.org/bind-keys
+	//========================================================================
+	
+	dnssec-validation auto;
+
+};
