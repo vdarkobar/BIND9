@@ -72,9 +72,9 @@ else
         echo -e "${RED}Could not determine the host IP address or hostname. Skipping /etc/hosts update!!!${NC}"
     else
         # Display the extracted domain name, host IP, and hostname
-        echo -e "${GREEN}Domain name: $DOMAIN_NAME${NC}"
-        echo -e "${GREEN}Host IP: $HOST_IP${NC}"
-        echo -e "${GREEN}Hostname: $HOST_NAME${NC}"
+        echo -e "${GREEN}Domain name:${NC} $DOMAIN_NAME"
+        echo -e "${GREEN}Host IP:${NC} $HOST_IP"
+        echo -e "${GREEN}Hostname:${NC} $HOST_NAME"
 
         # Remove any existing lines with the current hostname in /etc/hosts
         sudo sed -i "/$HOST_NAME/d" /etc/hosts
