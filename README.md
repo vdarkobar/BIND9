@@ -4,12 +4,10 @@
   
 # BIND9
 ## DNS software system including an authoritative server, a recursive resolver and related utilities  
-  
-> *Create <a href="https://github.com/vdarkobar/Home-Cloud/blob/main/shared/Proxmox.md#proxmox">Proxmox</a> VM: (2CPU/2GBRAM/16GBHDD) using <a href="https://www.debian.org/">Debian server</a>.  
-> *Do not set root password during installation, this way created user will gain sudo privileges.*   
-> Add SSH Server during installation.*  
-  
-### *Run this command and follow the instructions*:
+<br><br>
+Clone <a href="https://github.com/vdarkobar/DebianTemplate/blob/main/README.md#debian-template">Template</a>  
+<br><br>
+### *Run this command*:
 ```
 clear
 sudo apt -y install git && \
