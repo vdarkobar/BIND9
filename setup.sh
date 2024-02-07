@@ -156,15 +156,15 @@ if [ -f "$FILENAME" ]; then
         # Copy the file to the destination folder
         sudo cp "$FILENAME" "$DESTINATION"
         if [ $? -eq 0 ]; then
-            echo "${GREEN}File '$FILENAME' has been successfully copied to '$DESTINATION'.${NC}"
+            echo -e "${GREEN}File '$FILENAME' has been successfully copied to '$DESTINATION'.${NC}"
         else
-            echo "${RED}Failed to copy the file to '$DESTINATION'.${NC}"
+            echo -e "${RED}Failed to copy the file to '$DESTINATION'.${NC}"
         fi
     else
-        echo "${RED}Destination folder '$DESTINATION' does not exist.${NC}"
+        echo -e "${RED}Destination folder '$DESTINATION' does not exist.${NC}"
     fi
 else
-    echo "${RED}File '$FILENAME' does not exist in the current directory.${NC}"
+    echo -e "${RED}File '$FILENAME' does not exist in the current directory.${NC}"
 fi
 
 # Define the file and the line to append
@@ -173,14 +173,14 @@ LINE='include "/etc/bind/named.conf.logging";'
 
 # Check if the line already exists in the file
 if grep -Fq "$LINE" "$FILE"; then
-    echo "${GREEN}The specified line already exists in $FILE${NC}"
+    echo -e "${GREEN}The specified line already exists in $FILE${NC}"
 else
     # Append the line to the file
     echo "$LINE" | sudo tee -a "$FILE" > /dev/null
     if [ $? -eq 0 ]; then
-        echo "${GREEN}Line successfully appended to $FILE${NC}"
+        echo -e "${GREEN}Line successfully appended to $FILE${NC}"
     else
-        echo "${RED}Failed to append the line to $FILE${NC}"
+        echo -e "${RED}Failed to append the line to $FILE${NC}"
     fi
 fi
 
