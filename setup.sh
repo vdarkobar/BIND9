@@ -126,28 +126,67 @@ echo -e "${GREEN}File /etc/resolv.conf has been updated.${NC}"
 ########################################################################
 
 # Make the DNS configuration file immutable
-
 sudo chattr +i /etc/resolv.conf
 
 ########################################################################
 
 # Prepare firewall:
-
 sudo ufw allow 53/tcp comment 'DNS port 53/tcp'
 sudo ufw allow 53/udp comment 'DNS port 53/udp'
 
 ########################################################################
 
 # Create necessary folders
-
 sudo mkdir /etc/bind/zones
 sudo mkdir /var/log/named
 sudo chown bind:bind /var/log/named
 
 ########################################################################
 
-# Prompt user for reboot
+# Setup logging
+FILENAME="named.conf.logging"
 
+# Destination folder (use absolute or relative path)
+DESTINATION="/etc/bind/"
+
+# Check if the file exists in the current directory
+if [ -f "$FILENAME" ]; then
+    # Check if the destination folder exists
+    if [ -d "$DESTINATION" ]; then
+        # Copy the file to the destination folder
+        sudo cp "$FILENAME" "$DESTINATION"
+        if [ $? -eq 0 ]; then
+            echo "${GREEN}File '$FILENAME' has been successfully copied to '$DESTINATION'.${NC}"
+        else
+            echo "${RED}Failed to copy the file to '$DESTINATION'.${NC}"
+        fi
+    else
+        echo "${RED}Destination folder '$DESTINATION' does not exist.${NC}"
+    fi
+else
+    echo "${RED}File '$FILENAME' does not exist in the current directory.${NC}"
+fi
+
+# Define the file and the line to append
+FILE="/etc/bind/named.conf"
+LINE='include "/etc/bind/named.conf.logging";'
+
+# Check if the line already exists in the file
+if grep -Fq "$LINE" "$FILE"; then
+    echo "${GREEN}The specified line already exists in $FILE${NC}"
+else
+    # Append the line to the file
+    echo "$LINE" | sudo tee -a "$FILE" > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "${GREEN}Line successfully appended to $FILE${NC}"
+    else
+        echo "${RED}Failed to append the line to $FILE${NC}"
+    fi
+fi
+
+########################################################################
+
+# Prompt user for reboot confirmation
 while true; do
     read -p "Do you want to reboot the server? (yes/no): " response
     case "${response,,}" in
