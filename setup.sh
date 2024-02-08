@@ -72,9 +72,9 @@ else
         echo -e "${RED}Could not determine the host IP address or hostname. Skipping /etc/hosts update!!!${NC}"
     else
         # Display the extracted domain name, host IP, and hostname
-        echo -e "${GREEN}Domain name:${NC} $DOMAIN_NAME"
-        echo -e "${GREEN}Host IP:${NC} $HOST_IP"
-        echo -e "${GREEN}Hostname:${NC} $HOST_NAME"
+        echo -e "${GREEN}Domain name: $DOMAIN_NAME${NC}"
+        echo -e "${GREEN}Host IP: $HOST_IP${NC}"
+        echo -e "${GREEN}Hostname: $HOST_NAME${NC}"
 
         # Remove any existing lines with the current hostname in /etc/hosts
         sudo sed -i "/$HOST_NAME/d" /etc/hosts
@@ -143,20 +143,20 @@ sudo chown bind:bind /var/log/named
 
 ########################################################################
 
-# Setup logging
-FILENAME="named.conf.logging"
+# Prepare File 1
+FILENAME1="named.conf.logging"
 
 # Destination folder (use absolute or relative path)
 DESTINATION="/etc/bind/"
 
 # Check if the file exists in the current directory
-if [ -f "$FILENAME" ]; then
+if [ -f "$FILENAME1" ]; then
     # Check if the destination folder exists
     if [ -d "$DESTINATION" ]; then
         # Copy the file to the destination folder
-        sudo cp "$FILENAME" "$DESTINATION"
+        sudo cp "$FILENAME1" "$DESTINATION"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}File '$FILENAME' has been successfully copied to '$DESTINATION'.${NC}"
+            echo -e "${GREEN}File '$FILENAME1' has been successfully copied to '$DESTINATION'.${NC}"
         else
             echo -e "${RED}Failed to copy the file to '$DESTINATION'.${NC}"
         fi
@@ -164,7 +164,7 @@ if [ -f "$FILENAME" ]; then
         echo -e "${RED}Destination folder '$DESTINATION' does not exist.${NC}"
     fi
 else
-    echo -e "${RED}File '$FILENAME' does not exist in the current directory.${NC}"
+    echo -e "${RED}File '$FILENAME1' does not exist in the current directory.${NC}"
 fi
 
 # Define the file and the line to append
@@ -182,6 +182,75 @@ else
     else
         echo -e "${RED}Failed to append the line to $FILE${NC}"
     fi
+fi
+
+########################################################################
+
+# Prepare File 2
+FILENAME2="named.conf.options"
+
+# Destination folder (use absolute or relative path)
+DESTINATION="/etc/bind/"
+
+# Check if the file exists in the current directory
+if [ -f "$FILENAME2" ]; then
+    # Check if the destination folder exists
+    if [ -d "$DESTINATION" ]; then
+        # Copy the file to the destination folder
+        sudo cp "$FILENAME2" "$DESTINATION"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}File '$FILENAME2' has been successfully copied to '$DESTINATION'.${NC}"
+        else
+            echo -e "${RED}Failed to copy the file to '$DESTINATION'.${NC}"
+        fi
+    else
+        echo -e "${RED}Destination folder '$DESTINATION' does not exist.${NC}"
+    fi
+else
+    echo -e "${RED}File '$FILENAME2' does not exist in the current directory.${NC}"
+fi
+
+# Define the file path
+FILE="/etc/bind/named.conf.local"
+
+# Identify the host's primary IP address
+HOST_IP=$(hostname -I | awk '{print $1}')
+
+# Prompt user for input
+echo "Enter one or more subnets in the format 192.168.1.0/24, comma-separated:"
+read -r INPUT_SUBNETS
+
+# Split input subnets on comma and prepare them for insertion
+IFS=',' read -r -a SUBNET_ARRAY <<< "$INPUT_SUBNETS"
+FORMATTED_SUBNETS=""
+for SUBNET in "${SUBNET_ARRAY[@]}"; do
+    TRIMMED_SUBNET=$(echo "$SUBNET" | xargs) # Trim whitespace
+    FORMATTED_SUBNETS+="\t$TRIMMED_SUBNET;\n"
+done
+
+# Backup the existing named.conf.local file
+cp "$FILE" "$FILE.backup"
+
+# Replace HOST_IP with the actual host IP address
+sudo sed -i "s/HOST_IP/$HOST_IP/" "$FILE"
+echo "HOST_IP has been replaced with the actual host IP address in $FILE."
+
+# Check if acl trustedclients exists
+if grep -q "acl trustedclients" "$FILE"; then
+    # Use awk to replace the block
+    awk -v subnet_list="$FORMATTED_SUBNETS" '
+    /acl trustedclients {/,/};/ {
+        if (!done) {
+            print "acl trustedclients {";
+            print subnet_list;
+            print "};";
+            done=1;
+        }
+        next;
+    } 1' "$FILE" > tmpfile && sudo mv tmpfile "$FILE"
+    echo "Subnets have been updated in $FILE."
+else
+    echo "acl trustedclients block not found. Please check $FILE."
 fi
 
 ########################################################################
