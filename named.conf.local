@@ -6,10 +6,10 @@
 // organization
 //include "/etc/bind/zones.rfc1918";
 
-zone "home.lan" {
+zone "DOMAIN_NAME" {
 	type master;
-	file "/etc/bind/zones/db.home.lan";
-	allow-transfer { 192.168.1.224; };
+	file "/etc/bind/zones/db.DOMAIN_NAME";
+	allow-transfer { SLAVE_IP; };
 };
 
 # Declaring reverse zones:
@@ -17,5 +17,5 @@ zone "home.lan" {
 zone "12.168.192.in-addr.arpa" {
 	type master;
 	file "/etc/bind/zones/db.12.168.192";
-	allow-transfer { 192.168.1.224; };
+	allow-transfer { SLAVE_IP; };
 };
