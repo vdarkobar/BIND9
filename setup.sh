@@ -358,7 +358,7 @@ while read -r subnet; do
     zone_declaration="zone \"${rev_ip}.in-addr.arpa\" {\n\ttype master;\n\tfile \"/etc/bind/zones/db.${rev_ip}\";\n\tallow-transfer { $slave_ip; };\n};\n"
 
     # Append the declaration to the local file
-    echo -e "$zone_declaration" >> $local_file
+    sudo echo -e "$zone_declaration" >> $local_file
 done <<< "$subnets"
 
 echo "Reverse DNS zones have been added to $local_file."
