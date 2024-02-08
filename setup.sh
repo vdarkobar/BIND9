@@ -341,9 +341,6 @@ slave_ip=$SLAVE_IP
 # Extract subnets from the acl trustedclients block
 subnets=$(awk '/acl trustedclients {/,/};/' $options_file | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[0-9]\{1,2\}')
 
-# Backup the named.conf.local file before modifying
-#sudo cp $local_file "${local_file}.bak"
-
 # Check if we have the # Declaring reverse zones comment, if not, append it
 if ! grep -q "# Declaring reverse zones" $local_file; then
     echo -e "\n# Declaring reverse zones" | sudo tee -a $local_file > /dev/null
