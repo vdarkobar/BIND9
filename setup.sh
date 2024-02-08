@@ -211,13 +211,13 @@ else
 fi
 
 # Define the file path
-FILE="/etc/bind/named.conf.local"
+FILE="/etc/bind/named.conf.options"
 
 # Identify the host's primary IP address
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 # Prompt user for input
-echo "Enter one or more subnets in the format 192.168.1.0/24, comma-separated:"
+echo "Enter one or more subnets as trusted clients,format 192.168.1.0/24, comma-separated:"
 read -r INPUT_SUBNETS
 
 # Split input subnets on comma and prepare them for insertion
@@ -228,12 +228,9 @@ for SUBNET in "${SUBNET_ARRAY[@]}"; do
     FORMATTED_SUBNETS+="\t$TRIMMED_SUBNET;\n"
 done
 
-# Backup the existing named.conf.local file
-sudo cp "$FILE" "$FILE.backup"
-
 # Replace HOST_IP with the actual host IP address
 sudo sed -i "s/HOST_IP/$HOST_IP/" "$FILE"
-echo "HOST_IP has been replaced with the actual host IP address in $FILE."
+echo "Host IP address in $FILE updated"
 
 # Check if acl trustedclients exists
 if grep -q "acl trustedclients" "$FILE"; then
