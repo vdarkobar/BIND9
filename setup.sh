@@ -217,11 +217,36 @@ FILE="/etc/bind/named.conf.options"
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 # Prompt user for input
-echo "Enter one or more subnets as trusted clients,format 192.168.1.0/24, comma-separated:"
-read -r INPUT_SUBNETS
 
-# Split input subnets on comma and prepare them for insertion
-IFS=',' read -r -a SUBNET_ARRAY <<< "$INPUT_SUBNETS"
+# Initialize input flag
+VALID_INPUT=0
+
+while [[ $VALID_INPUT -eq 0 ]]; do
+    # Prompt user for input
+    echo "Enter one or more subnets as trusted clients, format 192.168.1.0/24, comma-separated:"
+    read -r INPUT_SUBNETS
+
+    # Check for empty input
+    if [[ -z "$INPUT_SUBNETS" ]]; then
+        echo "No input provided. Please enter one or more subnets."
+        continue # Prompt again
+    fi
+
+    # Assume input is valid initially
+    VALID_INPUT=1
+
+    # Validate each subnet format
+    IFS=',' read -r -a SUBNET_ARRAY <<< "$INPUT_SUBNETS"
+    for SUBNET in "${SUBNET_ARRAY[@]}"; do
+        TRIMMED_SUBNET=$(echo "$SUBNET" | xargs) # Trim whitespace
+        if ! [[ $TRIMMED_SUBNET =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$ ]]; then
+            echo "Error: '$TRIMMED_SUBNET' is not a valid subnet format."
+            VALID_INPUT=0
+            break # Exit the for loop, invalid input found
+        fi
+    done
+done
+
 FORMATTED_SUBNETS=""
 for SUBNET in "${SUBNET_ARRAY[@]}"; do
     TRIMMED_SUBNET=$(echo "$SUBNET" | xargs) # Trim whitespace
@@ -245,7 +270,7 @@ if grep -q "acl trustedclients" "$FILE"; then
         }
         next;
     } 1' "$FILE" > tmpfile && sudo mv tmpfile "$FILE"
-    echo "Subnets have been updated in $FILE."
+    echo "Trusted clients in $FILE updated"
 else
     echo "acl trustedclients block not found. Please check $FILE."
 fi
