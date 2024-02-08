@@ -277,7 +277,7 @@ fi
 
 ########################################################################
 
-# Prepare File 23
+# Prepare File 3
 FILENAME3="named.conf.local"
 
 # Destination folder (use absolute or relative path)
@@ -341,6 +341,9 @@ slave_ip=$SLAVE_IP
 # Extract subnets from the acl trustedclients block
 subnets=$(awk '/acl trustedclients {/,/};/' $options_file | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[0-9]\{1,2\}')
 
+# Backup the named.conf.local file before modifying
+#sudo cp $local_file "${local_file}.bak"
+
 # Check if we have the # Declaring reverse zones comment, if not, append it
 if ! grep -q "# Declaring reverse zones" $local_file; then
     echo -e "\n# Declaring reverse zones" | sudo tee -a $local_file > /dev/null
@@ -359,6 +362,63 @@ while read -r subnet; do
 done <<< "$subnets"
 
 echo "Reverse DNS zones have been added to $local_file."
+
+########################################################################
+
+# Prepare File 4
+
+# Extract the domain name from /etc/resolv.conf
+DOMAIN_NAME=$(grep '^domain' /etc/resolv.conf | awk '{print $2}')
+
+# Extract the hostname
+HOST_NAME=$(hostname)
+
+# Extract the username
+USER_NAME=$(whoami)
+
+# Define the target directory and file names
+TARGET_DIR="/etc/bind/zones"
+TARGET_FILE="db.${DOMAIN_NAME}"
+
+# Ensure the target directory exists, using sudo for elevated privileges
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "Target directory ${TARGET_DIR} does not exist. Creating it."
+    sudo mkdir -p "$TARGET_DIR"
+fi
+
+# Loop until valid input is provided
+while true; do
+    echo "Please enter the hostname for the slave DNS server:"
+    read SLAVE_DNS_HOSTNAME
+
+    # Check if input is non-empty and contains only valid characters
+    if [[ "$SLAVE_DNS_HOSTNAME" =~ ^[a-zA-Z0-9]+([\-\.]{1}[a-zA-Z0-9]+)*$ ]]; then
+        break # Valid input; exit loop
+    else
+        echo "Invalid hostname. Please ensure it does not start or end with a hyphen and does not contain invalid characters."
+    fi
+done
+
+# Create or overwrite the file with the BIND data template, using sudo for elevated privileges
+sudo tee "${TARGET_DIR}/${TARGET_FILE}" > /dev/null <<EOF
+;
+; BIND data file for ${DOMAIN_NAME}
+;
+\$TTL    604800
+@       IN      SOA     ${HOST_NAME}.${DOMAIN_NAME}. ${USER_NAME}.${DOMAIN_NAME}. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ${HOST_NAME}.${DOMAIN_NAME}.
+        IN      NS      ${SLAVE_DNS_HOSTNAME}.${DOMAIN_NAME}.
+
+; SUBNET - A Records
+EOF
+
+echo "File ${TARGET_DIR}/${TARGET_FILE} has been created and placeholders replaced"
 
 ########################################################################
 
