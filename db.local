@@ -1,0 +1,16 @@
+;
+; BIND data file for DOMAIN_NAME
+;
+$TTL    604800
+@       IN      SOA     HOST_NAME.DOMAIN_NAME. USER_NAME.DOMAIN_NAME. (
+			                        1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      HOST_NAME.home.lan.
+        IN      NS      HOST_NAME2.DOMAIN_NAME.
+
+; SUBNET - A Records
+
