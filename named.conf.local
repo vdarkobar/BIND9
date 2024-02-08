@@ -13,9 +13,3 @@ zone "DOMAIN_NAME" {
 };
 
 # Declaring reverse zones:
-
-zone "12.168.192.in-addr.arpa" {
-	type master;
-	file "/etc/bind/zones/db.12.168.192";
-	allow-transfer { SLAVE_IP; };
-};
