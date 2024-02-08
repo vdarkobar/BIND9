@@ -342,11 +342,11 @@ slave_ip=$SLAVE_IP
 subnets=$(awk '/acl trustedclients {/,/};/' $options_file | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[0-9]\{1,2\}')
 
 # Backup the named.conf.local file before modifying
-sudo cp $local_file "${local_file}.bak"
+#sudo cp $local_file "${local_file}.bak"
 
 # Check if we have the # Declaring reverse zones comment, if not, append it
 if ! grep -q "# Declaring reverse zones" $local_file; then
-    echo -e "\n# Declaring reverse zones" >> $local_file
+    echo -e "\n# Declaring reverse zones" | sudo tee -a $local_file > /dev/null
 fi
 
 # Write each subnet as a reverse zone declaration
@@ -357,8 +357,8 @@ while read -r subnet; do
     # Create the reverse zone declaration
     zone_declaration="zone \"${rev_ip}.in-addr.arpa\" {\n\ttype master;\n\tfile \"/etc/bind/zones/db.${rev_ip}\";\n\tallow-transfer { $slave_ip; };\n};\n"
 
-    # Append the declaration to the local file
-    sudo echo -e "$zone_declaration" >> $local_file
+    # Append the declaration to the local file using tee with append mode
+    echo -e "$zone_declaration" | sudo tee -a $local_file > /dev/null
 done <<< "$subnets"
 
 echo "Reverse DNS zones have been added to $local_file."
