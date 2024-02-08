@@ -19,28 +19,3 @@ zone "12.168.192.in-addr.arpa" {
 	file "/etc/bind/zones/db.12.168.192";
 	allow-transfer { 192.168.1.224; };
 };
-
-zone "11.168.192.in-addr.arpa" {
-	type master;
-	file "/etc/bind/zones/db.11.168.192";
-	allow-transfer { 192.168.1.224; };
-};
-	
-zone "10.168.192.in-addr.arpa" {
-	type master;
-	file "/etc/bind/zones/db.10.168.192";
-	allow-transfer { 192.168.1.224; };
-};
-
-
-zone "1.168.192.in-addr.arpa" {
-	type master;
-	file "/etc/bind/zones/db.1.168.192";
-	allow-transfer { 192.168.1.224; };
-};
-
-zone "10.10.10.in-addr.arpa" {
-	type master;
-	file "/etc/bind/zones/db.10.10.10";
-	allow-transfer { 192.168.1.224; };
-};
