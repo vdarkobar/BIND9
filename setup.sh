@@ -277,6 +277,94 @@ fi
 
 ########################################################################
 
+# Prepare File 23
+FILENAME3="named.conf.local"
+
+# Destination folder (use absolute or relative path)
+DESTINATION="/etc/bind/"
+
+# Check if the file exists in the current directory
+if [ -f "$FILENAME3" ]; then
+    # Check if the destination folder exists
+    if [ -d "$DESTINATION" ]; then
+        # Copy the file to the destination folder
+        sudo cp "$FILENAME3" "$DESTINATION"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}File '$FILENAME3' has been successfully copied to '$DESTINATION'.${NC}"
+        else
+            echo -e "${RED}Failed to copy the file to '$DESTINATION'.${NC}"
+        fi
+    else
+        echo -e "${RED}Destination folder '$DESTINATION' does not exist.${NC}"
+    fi
+else
+    echo -e "${RED}File '$FILENAME3' does not exist in the current directory.${NC}"
+fi
+
+# Define the file path
+FILE="/etc/bind/named.conf.local"
+
+# Extract the domain name from /etc/resolv.conf
+DOMAIN_NAME=$(grep '^domain' /etc/resolv.conf | awk '{print $2}')
+
+# Use sed to replace DOMAIN_NAME with the actual domain name in the configuration file
+sudo sed -i "s/DOMAIN_NAME/$DOMAIN_NAME/g" $FILE
+
+# Prompt the user for the Slave DNS Server IP address and validate input
+while true; do
+    read -p "Enter Slave DNS Server IP Address: " SLAVE_IP
+    if [[ -z "$SLAVE_IP" ]]; then
+        echo "Input cannot be blank. Please enter a valid IP address."
+    elif ! [[ $SLAVE_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Invalid IP address format. Please enter a valid IP address."
+    else
+        break
+    fi
+done
+
+# Use sed to replace placeholders in the file
+sudo sed -i "s/SLAVE_IP/$SLAVE_IP/g" $FILE
+
+# Path to the input and output files
+options_file="/etc/bind/named.conf.options"
+local_file="/etc/bind/named.conf.local"
+
+# Placeholder for the actual slave DNS server IP
+slave_ip=$SLAVE_IP
+
+# Ensure the script is run as root
+#if [[ $EUID -ne 0 ]]; then
+#   echo "This script must be run as root" 
+#   exit 1
+#fi
+
+# Extract subnets from the acl trustedclients block
+subnets=$(awk '/acl trustedclients {/,/};/' $options_file | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[0-9]\{1,2\}')
+
+# Backup the named.conf.local file before modifying
+sudo cp $local_file "${local_file}.bak"
+
+# Check if we have the # Declaring reverse zones comment, if not, append it
+if ! grep -q "# Declaring reverse zones" $local_file; then
+    echo -e "\n# Declaring reverse zones" >> $local_file
+fi
+
+# Write each subnet as a reverse zone declaration
+while read -r subnet; do
+    # Reverse the IP and remove the subnet mask
+    rev_ip=$(echo $subnet | cut -d'/' -f1 | awk -F. '{print $3"."$2"."$1}')
+    
+    # Create the reverse zone declaration
+    zone_declaration="zone \"${rev_ip}.in-addr.arpa\" {\n\ttype master;\n\tfile \"/etc/bind/zones/db.${rev_ip}\";\n\tallow-transfer { $slave_ip; };\n};\n"
+
+    # Append the declaration to the local file
+    echo -e "$zone_declaration" >> $local_file
+done <<< "$subnets"
+
+echo "Reverse DNS zones have been added to $local_file."
+
+########################################################################
+
 # Prompt user for reboot confirmation
 while true; do
     read -p "Do you want to reboot the server? (yes/no): " response
