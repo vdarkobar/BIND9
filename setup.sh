@@ -229,7 +229,7 @@ for SUBNET in "${SUBNET_ARRAY[@]}"; do
 done
 
 # Backup the existing named.conf.local file
-cp "$FILE" "$FILE.backup"
+sudo cp "$FILE" "$FILE.backup"
 
 # Replace HOST_IP with the actual host IP address
 sudo sed -i "s/HOST_IP/$HOST_IP/" "$FILE"
